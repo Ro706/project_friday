@@ -12,7 +12,7 @@ load_dotenv()
 # Get the API key and username from environment variables
 Username = os.getenv("USERNAME", "")
 GroqAPIKey = os.getenv("GROQ_API_KEY", "")
-Assistantname = "Jarvis"  # Define the assistant name
+Assistantname = "Friday"  # Define the assistant name
 
 # Initialize Groq client
 client = Groq(api_key=GroqAPIKey)

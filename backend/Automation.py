@@ -55,7 +55,7 @@ def CloseApp(app_name):
 
 def OpenApp(app_name):
     print(f"[bold green]Opening: {app_name}[/bold green]")
-    appopen(app_name)
+    appopen(app_name, match_closest=True)
     return app_name
 
 def contentWrite(query):

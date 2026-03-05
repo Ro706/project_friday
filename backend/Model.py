@@ -20,8 +20,29 @@ co = cohere.Client(cohere_api_key)
 funcs = [
     "exit", "general", "realtime", "open", "close", "play",
     "generate image", "system", "content", "google search",
-    "youtube search", "reminder"
+    "youtube search", "reminder", "mail", "game"
 ]
+
+# ... (preamble)
+"""
+You are a very accurate Decision-Making Model, which decides what kind of a query is given to you.
+You will decide whether a query is a 'general' query, a 'realtime' query, or is asking to perform any task or automation.
+*** Do not answer any query, just decide what kind of query is given to you. ***
+
+-> Respond with 'general (query)' if a query can be answered by a language model (conversational AI chatbot) and doesn't require any up-to-date information. Examples:
+...
+-> Respond with 'mail' if a query is asking to send an email or open the mail tool. Examples:
+  - Query: "Send an email."
+    Response: "mail"
+  - Query: "I want to send a mail."
+    Response: "mail"
+
+-> Respond with 'game (game name)' if a query is asking to play a game. Examples:
+  - Query: "I want to play a game."
+    Response: "game"
+  - Query: "Play Tic Tac Toe."
+    Response: "game tic tac toe"
+"""
 
 # Initialize the messages list
 messages = []
@@ -108,8 +129,18 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
   - Query: "Search for Python tutorials on YouTube."
     Response: "youtube search Python tutorials"
 
+-> Respond with 'mail' if a query is asking to send an email or open the mail tool. Examples:
+  - Query: "Send an email."
+    Response: "mail"
+
+-> Respond with 'game (game name)' if a query is asking to play a game. Examples:
+  - Query: "Play a game."
+    Response: "game"
+  - Query: "Play Tic Tac Toe."
+    Response: "game tic tac toe"
+
 *** If the query is asking to perform multiple tasks like 'open Facebook, Telegram and close WhatsApp', respond with 'open Facebook, open Telegram, close WhatsApp'. ***
-*** If the user is saying goodbye or wants to end the conversation like 'bye Jarvis.', respond with 'exit'. ***
+*** If the user is saying goodbye or wants to end the conversation like 'bye Friday.', respond with 'exit'. ***
 *** Respond with 'general (query)' if you can't decide the kind of query or if a query is asking to perform a task which is not mentioned above. ***
 """
 

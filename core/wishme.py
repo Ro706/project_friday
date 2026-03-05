@@ -61,13 +61,13 @@ def wish_me(name):
     
     # Create appropriate greeting based on time of day
     if hour < 12:
-        greeting = f"Good morning, {name}! ☀️ Hope you have a fantastic day ahead! The current temperature is {temperature}°C, with {weather_condition}. A perfect time to step out for a fresh start! 🌿"
+        greeting = f"Good morning, {name}! ☀️ Hope you have a fantastic day ahead! The current temperature is {temperature}°C, with {weather_condition}. A perfect time to step out for a fresh start!"
     elif 12 <= hour < 18:
-        greeting = f"Hey {name}! 🌞 It's a bright and sunny afternoon with {temperature}°C outside. Stay hydrated and don't forget your sunglasses! 😎"
+        greeting = f"Hey {name}! 🌞 It's a bright and sunny afternoon with {temperature}°C outside. Stay hydrated and don't forget your sunglasses!"
     elif 18 <= hour < 21:
-        greeting = f"Good evening, {name}! 🌆 The temperature is now {temperature}°C, with {weather_condition}. A great time for a walk or some relaxation! 🌃"
+        greeting = f"Good evening, {name}! 🌆 The temperature is now {temperature}°C, with {weather_condition}. A great time for a walk or some relaxation!"
     else:
-        greeting = f"Hello {name}, it's nighttime now! 🌃 The temperature is {temperature}°C with {weather_condition}. Have a restful night! 🌜"
+        greeting = f"Hello {name}, it's nighttime now! 🌃 The temperature is {temperature}°C with {weather_condition}. Have a restful night!"
     
     print(greeting)
     speak(greeting)

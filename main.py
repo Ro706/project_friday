@@ -1,342 +1,194 @@
 import os
-import signal
-import webbrowser
-import pyjokes
-from backend.TextToSpeech import speak
-import speech_recognition as sr
-from datetime import datetime
+# Suppress pygame support message
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import sys
+import threading
+import subprocess
 from dotenv import load_dotenv
-import google.generativeai as genai
-import spacy
-from textblob import TextBlob
-from transformers import pipeline
-from core.PhotoCaptureApp import create_gui
-from core.ram_info import RamInfo
-from core.cpu_info import cpu_info
-from core.weather import tellmeTodaysWeather
+
+# Add subdirectories to path if necessary
+sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'core'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'game'))
+
+# Import backend modules
+from backend.Model import FirstLayerDMM
+from backend.Chatbot import Chatbot
+from backend.RealtimeSearchEngine import RealtimeInformation
+from backend.Automation import (
+    OpenApp, CloseApp, GoogleSearch, YouTubeSearch, 
+    contentWrite, SystemCommand, VolumeControl, TakeScreenshot
+)
+from backend.ImageGeneration import GenerateImage
+from backend.TextToSpeech import speak
+
+# Import core modules
 from core.news import news_report
-from core.wishme import wish_me
+from core.weather import tellmeTodaysWeather
+from core.cpu_info import cpu_info
+from core.ram_info import RamInfo
+from core.PhotoCaptureApp import create_gui
 from core.mail import send_mail
-from game.game1 import game
 
+# Import game modules
+import game1
+import game2
+
+# Load environment variables
 load_dotenv()
+USERNAME = os.getenv("USERNAME", "User")
 
-# Load SpaCy model for NLP
-nlp = spacy.load("en_core_web_sm")
-
-# Load sentiment analysis
-def analyze_sentiment(text):
-    analysis = TextBlob(text)
-    if analysis.sentiment.polarity > 0:
-        return "positive"
-    elif analysis.sentiment.polarity < 0:
-        return "negative"
+def handle_game_selection():
+    """Handles interactive game selection when no game is specified."""
+    msg = "Which game would you like to play? 1. Tic Tac Toe, 2. Ball Bouncing"
+    print(f"Friday: {msg}")
+    speak(msg)
+    
+    choice = input(f"[{USERNAME}]: ").strip().lower()
+    if "1" in choice or "tic" in choice:
+        speak("Starting Tic Tac Toe.")
+        game1.game()
+    elif "2" in choice or "ball" in choice:
+        speak("Starting Ball Bouncing Game.")
+        game2.start_game()
     else:
-        return "neutral"
+        err_msg = "Invalid selection. Please try again with a game name or number."
+        print(f"Friday: {err_msg}")
+        speak(err_msg)
 
-# Load question-answering pipeline for contextual understanding
-qa_pipeline = pipeline("question-answering")
+def execute_task(task_query, original_prompt):
+    """Executes a single task based on the classified query."""
+    print(f"\n[Executing Task]: {task_query}")
+    
+    # Handle literal "(query)" or missing query text from Model.py
+    def clean_query(prefix, text):
+        q = text.replace(prefix, "").strip()
+        if not q or q == "(query)":
+            return original_prompt
+        return q
 
-def answer_question(context, question):
-    result = qa_pipeline(question=question, context=context)
-    return result['answer']
+    if task_query.startswith("general"):
+        query = clean_query("general", task_query)
+        response = Chatbot(query)
+        print(f"Friday: {response}")
+        speak(response)
 
-def signal_handler(sig, frame):
-    print("Goodbye, Have a nice day!")
-    exit(0)
+    elif task_query.startswith("realtime"):
+        query = clean_query("realtime", task_query)
+        if "news" in query.lower():
+            response = news_report()
+            print(f"Friday: {response}")
+        elif "weather" in query.lower():
+            response = tellmeTodaysWeather()
+            print(f"Friday: {response}")
+        elif "cpu" in query.lower():
+            response = cpu_info()
+            print(f"Friday: {response}")
+            speak(f"Here is your CPU information: {response}")
+        elif "ram" in query.lower():
+            response = RamInfo().info()
+            print(f"Friday: {response}")
+            speak(response)
+        else:
+            response = RealtimeInformation(query)
+            print(f"Friday: {response}")
+            speak(response)
 
-signal.signal(signal.SIGINT, signal_handler)
+    elif task_query.startswith("open"):
+        app_name = clean_query("open", task_query)
+        if "photo" in app_name.lower() or "camera" in app_name.lower():
+            speak("Opening camera.")
+            create_gui()
+        elif "game" in app_name.lower():
+            if "tic tac toe" in app_name.lower() or "1" in app_name.lower():
+                speak("Starting Tic Tac Toe.")
+                game1.game()
+            elif "ball" in app_name.lower() or "2" in app_name.lower():
+                speak("Starting Ball Bouncing Game.")
+                game2.start_game()
+            else:
+                handle_game_selection()
+        else:
+            OpenApp(app_name)
+            speak(f"Opening {app_name}.")
 
-class FileManager:
-    def __init__(self, base_path="."):
-        self.base_path = os.path.abspath(base_path)
+    elif task_query.startswith("close"):
+        app_name = clean_query("close", task_query)
+        CloseApp(app_name)
+        speak(f"Closing {app_name}.")
 
-    def create_file(self, filename, content=""):
-        path = os.path.join(self.base_path, filename)
-        with open(path, "w") as file:
-            file.write(content)
-        return f"File created: {path}"
+    elif task_query.startswith("play"):
+        song_name = clean_query("play", task_query)
+        YouTubeSearch(song_name)
+        speak(f"Playing {song_name} on YouTube.")
 
-    def read_file(self, filename):
-        path = os.path.join(self.base_path, filename)
-        if os.path.exists(path):
-            with open(path, "r") as file:
-                return file.read()
-        return f"File not found: {path}"
+    elif task_query.startswith("generate image"):
+        prompt = clean_query("generate image", task_query)
+        speak("Generating images, please wait.")
+        GenerateImage(prompt)
 
-    def append_to_file(self, filename, content):
-        path = os.path.join(self.base_path, filename)
-        if os.path.exists(path):
-            with open(path, "a") as file:
-                file.write(content)
-            return f"Content appended to: {path}"
-        return f"File not found: {path}"
+    elif task_query.startswith("system"):
+        cmd = clean_query("system", task_query)
+        if cmd in ["mute", "unmute", "volume up", "volume down"]:
+            VolumeControl(cmd)
+        elif cmd in ["screenshot", "take screenshot"]:
+            TakeScreenshot()
+            speak("Screenshot taken.")
+        else:
+            SystemCommand(cmd)
 
-    def delete_file(self, filename):
-        path = os.path.join(self.base_path, filename)
-        if os.path.exists(path):
-            os.remove(path)
-            return f"File deleted: {path}"
-        return f"File not found: {path}"
+    elif task_query.startswith("content"):
+        topic = clean_query("content", task_query)
+        speak(f"Writing content about {topic}.")
+        contentWrite(topic)
 
-    def create_directory(self, dirname):
-        path = os.path.join(self.base_path, dirname)
-        os.makedirs(path, exist_ok=True)
-        return f"Directory created: {path}"
+    elif task_query.startswith("google search"):
+        topic = clean_query("google search", task_query)
+        GoogleSearch(topic)
+        speak(f"Searching Google for {topic}.")
 
-    def delete_directory(self, dirname):
-        path = os.path.join(self.base_path, dirname)
-        if os.path.exists(path) and os.path.isdir(path):
-            try:
-                os.rmdir(path)
-                return f"Directory deleted: {path}"
-            except OSError as e:
-                return f"Error: Could not delete {path}. The directory might not be empty."
-        return f"Directory not found: {path}"
+    elif task_query.startswith("youtube search"):
+        topic = clean_query("youtube search", task_query)
+        YouTubeSearch(topic)
+        speak(f"Searching YouTube for {topic}.")
 
-    def search_file(self, filename, start_path="."):
-        start_path = os.path.abspath(start_path)
-        for root, _, files in os.walk(start_path):
-            if filename in files:
-                return f"File found: {os.path.join(root, filename)}"
-        return f"File not found: {filename}"
+    elif task_query.startswith("game"):
+        game_name = clean_query("game", task_query)
+        if "tic tac toe" in game_name or "1" in game_name:
+            speak("Starting Tic Tac Toe.")
+            game1.game()
+        elif "ball" in game_name or "2" in game_name:
+            speak("Starting Ball Bouncing Game.")
+            game2.start_game()
+        else:
+            handle_game_selection()
 
-    def list_directory(self, dirname="."):
-        path = os.path.join(self.base_path, dirname)
-        if os.path.exists(path) and os.path.isdir(path):
-            files = os.listdir(path)
-            return f"Contents of {path}:\n" + "\n".join(files) if files else f"Directory {path} is empty"
-        return f"Directory not found: {path}"
+    elif task_query.startswith("mail"):
+        speak("Preparing to send an email.")
+        send_mail()
 
-class RecognizeSpeech:
-    def __init__(self):
-        self.recognizer = sr.Recognizer()
-
-    def listen(self):
-        with sr.Microphone() as source:
-            print("Listening...")
-            self.recognizer.pause_threshold = 1
-            audio = self.recognizer.listen(source)
-
-        try:
-            print("Recognizing...")
-            query = self.recognizer.recognize_google(audio, language='en-in')
-            print(f"User said: {query}")
-            return query.lower()
-        except Exception as e:
-            print(e)
-            print("Say that again please...")
-            return "none"
-
-class Speak:
-    def __init__(self):
-        pass
-
-    def speak(self, text):
-        print(f"Jarvis: {text}")
-        speak(text)
-
-class Bard:
-    def __init__(self):
-        genai.configure(api_key=os.getenv("GEMINI_KEY"))
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-
-    def chat(self, query):
-        try:
-            query = f"Your name is Jarvis, our intelligent and reliable personal assistant. Try to give each response in 3 to 4 lines. {query}"
-            response = self.model.generate_content(query)
-            return response.text.replace("*", "").replace("**", "") if response and hasattr(response, "text") else "Sorry, I could not understand that."
-        except Exception as e:
-            print(f"Error with Gemini API: {e}")
-            return "Sorry, I encountered an error while processing your request."
-
-def extract_intent_and_entities(query):
-    doc = nlp(query)
-    intent = None
-    entities = []
-
-    for token in doc:
-        if token.dep_ == "ROOT":
-            intent = token.lemma_
-        if token.ent_type_:
-            entities.append((token.text, token.ent_type_))
-
-    # Post-process time entities to ensure correct formatting
-    for i, (entity, label) in enumerate(entities):
-        if label == "TIME":
-            # Normalize time format
-            time_str = entity.lower().replace(".", "").replace("am", " AM").replace("pm", " PM")
-            try:
-                # Parse the time string to a datetime object
-                time_obj = datetime.strptime(time_str, "%I:%M %p")
-                # Format it back to a standardized format
-                entities[i] = (time_obj.strftime("%I:%M %p"), label)
-            except ValueError:
-                # If parsing fails, keep the original entity
-                pass
-
-    return intent, entities
-
-def get_user_input(speaker, speech_recognizer, prompt):
-    speaker.speak(prompt)
-    user_input = speech_recognizer.listen()
-    if user_input == "none":
-        speaker.speak("I didn't catch that. Please try again.")
-        user_input = speech_recognizer.listen()
-    return user_input
+    elif task_query == "exit":
+        speak("Goodbye! Have a nice day.")
+        sys.exit()
 
 def main():
-    speaker = Speak()
-    speech_recognizer = RecognizeSpeech()
-    file_manager = FileManager()
-    user_name = "Rohit"
-
-    wish_me(user_name)
-
-    context = ""  # To maintain conversation context
+    msg = f"Hello {USERNAME}, I am Friday. How can I help you today?"
+    print(f"\n[Friday]: {msg}")
+    speak(msg)
 
     while True:
-        query = speech_recognizer.listen()
-        if query == "none":
+        # Get Text Input
+        query = input(f"\n[{USERNAME}]: ").strip()
+        
+        if not query:
             continue
 
-        intent, entities = extract_intent_and_entities(query)
-        print(f"Intent: {intent}, Entities: {entities}")
-
-        sentiment = analyze_sentiment(query)
-        print(f"Sentiment: {sentiment}")
-
-        if 'exit' in query or 'goodbye' in query:
-            speaker.speak("Goodbye, Have a nice day!")
-            break
-        elif intent in ['open', 'search'] and 'youtube' in query:
-            speaker.speak("Opening Youtube")
-            webbrowser.open("youtube.com")
-        elif intent in ['open', 'search'] and 'google' in query:
-            speaker.speak("Opening Google")
-            query = query.replace("open google and search for", "")
-            webbrowser.open(f"https://www.google.com/search?q={query}")
-        elif intent in ['open', 'search'] and 'stackoverflow' in query:
-            speaker.speak("Opening Stackoverflow")
-            webbrowser.open("stackoverflow.com")
-        elif intent in ['open', 'search'] and 'github' in query:
-            speaker.speak("Opening Github")
-            webbrowser.open("github.com")
-        elif intent in ['open', 'search'] and 'facebook' in query:
-            speaker.speak("Opening Facebook")
-            webbrowser.open("facebook.com")
-        elif intent in ['open', 'search'] and 'instagram' in query:
-            speaker.speak("Opening Instagram")
-            webbrowser.open("instagram.com")
-        elif 'ram' in query:
-            speaker.speak("Here are the RAM details:")
-            ram_info = RamInfo().info()
-            speaker.speak(ram_info)
-        elif "play music" in query:
-            os.system("spotify")
-        elif 'cpu' in query:
-            cpu_details = cpu_info()
-            speaker.speak("Here are the CPU details:")
-            speaker.speak(cpu_details)
-        elif 'weather' in query:
-            speaker.speak("Here is the weather in Nagpur:")
-            tellmeTodaysWeather()
-        elif "joke" in query:
-            joke = pyjokes.get_joke()
-            print(joke)
-            speaker.speak(joke)
-        elif 'time' in query:
-            speaker.speak("The current time is:")
-            speaker.speak(datetime.now().strftime("%H:%M:%S"))
-        elif 'create file' in query or 'make file' in query:
-            filename = input("Please Enter file name: ")
-            os.system(f"echo. > {filename}")
-            print("File created successfully")
-        elif 'read file' in query:
-            filename = query.split("file")[-1].strip() or input("Please Enter file name: ")
-            if filename != "none":
-                content = file_manager.read_file(filename)
-                speaker.speak(f"Content of {filename}:")
-                speaker.speak(content)
-            else:
-                speaker.speak("Sorry, I couldn't read the file without a name.")
-        elif 'append to file' in query or 'add to file' in query:
-            filename = query.split("file")[-1].strip() or input("Which file would you like to append to?")
-            content = get_user_input(speaker, speech_recognizer, "What content should I append to the file?")
-            if filename != "none" and content != "none":
-                try:
-                    result = file_manager.append_to_file(filename, content)
-                    speaker.speak(result)
-                except Exception as e:
-                    speaker.speak(f"Error appending to file: {e}")
-            else:
-                speaker.speak("Sorry, I couldn't append to the file due to missing information.")
-        elif 'delete file' in query or 'remove file' in query:
-            filename = query.split("file")[-1].strip() or input("Enter file name: ")
-            if filename != "none":
-                confirmation = input(f"Are you sure you want to delete {filename}? Say yes to confirm.")
-                if confirmation == "yes":
-                    result = file_manager.delete_file(filename)
-                    speaker.speak(result)
-                else:
-                    speaker.speak("File deletion cancelled.")
-            else:
-                speaker.speak("Sorry, I couldn't delete the file without a name.")
-        elif 'create directory' in query or 'create folder' in query or 'add folder' in query:
-            dirname = query.split("directory")[-1].strip() or query.split("folder")[-1].strip() or input("What should I name the directory or folder?")
-            if dirname != "none":
-                result = file_manager.create_directory(dirname)
-                print("Directory created:", result)
-            else:
-                speaker.speak("Sorry, I couldn't create the directory without a name.")
-        elif 'delete directory' in query or 'delete folder' in query or 'remove folder' in query:
-            dirname = query.split("directory")[-1].strip() or query.split("folder")[-1].strip() or input("Which directory or folder would you like me to delete?")
-            if dirname != "none":
-                confirmation = input(f"Are you sure you want to delete the directory {dirname}? Say yes to confirm.")
-                if confirmation == "yes":
-                    result = file_manager.delete_directory(dirname)
-                    speaker.speak(result)
-                else:
-                    speaker.speak("Directory deletion cancelled.")
-            else:
-                speaker.speak("Sorry, I couldn't delete the directory without a name.")
-        elif 'list directory' in query or 'list folder' in query:
-            dirname = query.split("directory")[-1].strip() or query.split("folder")[-1].strip() or input("Which directory or folder would you like me to list? Say current for the current directory.")
-            if dirname == "current":
-                dirname = "."
-            if dirname != "none":
-                result = file_manager.list_directory(dirname)
-                speaker.speak(result)
-            else:
-                speaker.speak("Listing current directory:")
-                result = file_manager.list_directory(".")
-                speaker.speak(result)
-        elif 'search file' in query or 'find file' in query:
-            filename = query.split("file")[-1].strip() or get_user_input(speaker, speech_recognizer, "What file would you like me to search for?")
-            if filename != "none":
-                speaker.speak(f"Searching for file {filename}...")
-                result = file_manager.search_file(filename)
-                speaker.speak(result)
-            else:
-                speaker.speak("Sorry, I couldn't search without a file name.")
-        elif "news report" in query:
-            news_report()
-        elif "mail" in query:
-            send_mail()
-        elif "game" in query:
-            speaker.speak("Opening a game for you!")
-            game()
-        elif "selfie" in query:
-            speaker.speak("Taking a selfie for you!")
-            create_gui()
-        elif "question" in intent:
-            # Use contextual understanding to answer questions
-            answer = answer_question(context, query)
-            speaker.speak(answer)
-            context = query  # Update context with the latest query
-        else:
-            response = Bard().chat(query)
-            speaker.speak(response)
+        # Classify query
+        tasks = FirstLayerDMM(query)
+        
+        # Execute tasks
+        for task in tasks:
+            execute_task(task, query)
 
 if __name__ == "__main__":
     main()
