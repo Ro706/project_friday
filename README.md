@@ -31,30 +31,38 @@ The following diagram illustrates the complete lifecycle of a user request withi
 ```mermaid
 graph TD
     A[User Input: Text] --> B{main.py: Orchestrator}
-    B -- "Sends Prompt" --> C[backend/Model.py: DMM]
-    C -- "Analysis via Cohere" --> D{Classification}
+    B -- "Initializes Env & Paths" --> C[backend/Model.py: DMM]
+    C -- "Classification via Cohere" --> D{Task Router}
     
     D -- "general" --> E[backend/Chatbot.py: Llama 3.3]
-    D -- "realtime" --> F[backend/RealtimeSearchEngine.py: DDG + Groq]
-    D -- "open / close" --> G[backend/Automation.py: System Control]
-    D -- "play / system" --> G
-    D -- "generate image" --> H[backend/ImageGeneration.py: SDXL]
-    D -- "game" --> I[game/: Tic Tac Toe / Ultra Breakout]
-    D -- "mail / news / weather" --> J[core/: System Utilities]
-    D -- "cpu / ram" --> J
+    D -- "realtime (Search)" --> F[backend/RealtimeSearchEngine.py]
+    D -- "realtime (Stats/Env)" --> G[core/: cpu/ram/news/weather]
+    D -- "open/close/search/system/content" --> H[backend/Automation.py]
+    D -- "generate image" --> I[backend/ImageGeneration.py: SDXL]
+    D -- "game" --> J[game/: game1 / game2]
+    D -- "mail" --> K[core/mail.py]
+    D -- "create folder" --> H
     
-    E & F & G & H & I & J -- "Returns Response" --> K{main.py: Output Handler}
-    K -- "speak()" --> L[backend/TextToSpeech.py: pyttsx3]
-    L -- "Voice Output" --> M[User Experience]
-    K -- "print()" --> N[Terminal Display]
+    E & F -- "Chat Persistence" --> P[(backend/Database.py: SQLite)]
+    
+    E & F & G & H & I & J & K -- "Returns Response" --> L{main.py: Output Handler}
+    L -- "speak()" --> M[backend/TextToSpeech.py: pyttsx3]
+    L -- "print()" --> N[Terminal / Rich Display]
+    M & N -- "Final Output" --> O[User Experience]
 ```
 
 ## 🔄 Workflow Lifecycle
 
 1.  **Input Phase**: User enters a text command into the terminal interface.
-2.  **Analysis Phase**: `Model.py` (Decision Making Model) uses Cohere LLM to determine the intent and prefix the query (e.g., `general`, `realtime`, `open`, `game`).
-3.  **Execution Phase**: `main.py` parses the prefix and executes the corresponding function.
-4.  **Feedback Phase**: Every response is simultaneously printed to the terminal and spoken aloud by Friday using the centralized `TextToSpeech` engine.
+2.  **Analysis Phase**: `Model.py` (Decision Making Model) uses Cohere LLM to determine the intent. It supports 15+ classifications including `general`, `realtime`, `open`, `close`, `play`, `generate image`, `system`, `content`, `google search`, `youtube search`, `reminder`, `mail`, `game`, and `create folder`.
+3.  **Routing Phase**: `main.py` parses the prefix and routes the query to the specialized module (Backend, Core, or Game).
+4.  **Execution Phase**:
+    *   **Conversational**: Llama 3.3 handles logic and knowledge queries, with history managed by `Database.py`.
+    *   **Automation**: System-level commands (volume, screenshots, app management) and web automation via `Automation.py`.
+    *   **Information**: Real-time news, weather, and system diagnostics (CPU/RAM).
+    *   **Creativity**: SDXL for image generation and LLM for content writing.
+    *   **Persistence**: SQLite-based chat logging ensures context across interactions.
+5.  **Feedback Phase**: Responses are simultaneously displayed with rich terminal formatting and spoken aloud via the `TextToSpeech` engine.
 
 ## 🛠️ Setup & Requirements
 
