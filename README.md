@@ -24,36 +24,37 @@ Friday is a modular, high-performance personal AI assistant built with Python. I
 - **Tic Tac Toe**: Intelligent AI-driven board game with hint support.
 - **Ultra Breakout**: Advanced arcade game with levels, power-ups, and particle effects.
 
-## 🏗️ Project Structure
+## 🔄 Project Flow
 
-```text
-C:\Users\rohit\Desktop\Friday\
-├── main.py                 # Central orchestrator and entry point
-├── backend/                # Core AI and logic modules
-│   ├── Model.py            # Decision Making Model (DMM)
-│   ├── Chatbot.py          # Conversational LLM (Groq)
-│   ├── Automation.py       # System and web automation
-│   ├── ImageGeneration.py  # SDXL Image generation
-│   └── TextToSpeech.py     # Centralized voice output
-├── core/                   # Utility and system info modules
-│   ├── news.py             # Global news retrieval
-│   ├── weather.py          # Real-time weather data
-│   ├── cpu_info.py         # Processor diagnostics
-│   └── mail.py             # SMTP Email client
-├── game/                   # Interactive games
-│   ├── game1.py            # Tic Tac Toe
-│   └── game2.py            # Advanced Ultra Breakout
-└── data/                   # Persistent logs and generated assets
+The following diagram illustrates the complete lifecycle of a user request within the Friday ecosystem:
+
+```mermaid
+graph TD
+    A[User Input: Text] --> B{main.py: Orchestrator}
+    B -- "Sends Prompt" --> C[backend/Model.py: DMM]
+    C -- "Analysis via Cohere" --> D{Classification}
+    
+    D -- "general" --> E[backend/Chatbot.py: Llama 3.3]
+    D -- "realtime" --> F[backend/RealtimeSearchEngine.py: DDG + Groq]
+    D -- "open / close" --> G[backend/Automation.py: System Control]
+    D -- "play / system" --> G
+    D -- "generate image" --> H[backend/ImageGeneration.py: SDXL]
+    D -- "game" --> I[game/: Tic Tac Toe / Ultra Breakout]
+    D -- "mail / news / weather" --> J[core/: System Utilities]
+    D -- "cpu / ram" --> J
+    
+    E & F & G & H & I & J -- "Returns Response" --> K{main.py: Output Handler}
+    K -- "speak()" --> L[backend/TextToSpeech.py: pyttsx3]
+    L -- "Voice Output" --> M[User Experience]
+    K -- "print()" --> N[Terminal Display]
 ```
 
-## 🔄 System Flow
+## 🔄 Workflow Lifecycle
 
-Friday operates on a **Research -> Strategy -> Execution** lifecycle:
-
-1.  **Input**: The user provides a text command in the terminal.
-2.  **Classification**: The `Model.py` (DMM) analyzes the intent (e.g., is this a general question or a request to play a game?).
-3.  **Routing**: `main.py` routes the task to the appropriate module in `backend/`, `core/`, or `game/`.
-4.  **Feedback**: Friday provides immediate verbal and textual feedback through the `TextToSpeech` engine.
+1.  **Input Phase**: User enters a text command into the terminal interface.
+2.  **Analysis Phase**: `Model.py` (Decision Making Model) uses Cohere LLM to determine the intent and prefix the query (e.g., `general`, `realtime`, `open`, `game`).
+3.  **Execution Phase**: `main.py` parses the prefix and executes the corresponding function.
+4.  **Feedback Phase**: Every response is simultaneously printed to the terminal and spoken aloud by Friday using the centralized `TextToSpeech` engine.
 
 ## 🛠️ Setup & Requirements
 
