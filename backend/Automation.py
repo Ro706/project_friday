@@ -199,7 +199,7 @@ if __name__ == "__main__":
     # print(f"Chatbot: {content}")
 
     # Uncomment to try features:
-    # GoogleSearch("ChatGPT vs Gemini")
+    GoogleSearch("ChatGPT vs Gemini")
     # YouTubeSearch("AI in 2025")
     # GetWeather("Delhi")
     # GetNews()
@@ -213,4 +213,4 @@ if __name__ == "__main__":
     # VolumeControl("increase")
     # VolumeControl("decrease")
     # VolumeControl("mute")
-    VolumeControl("unmute")
+    # VolumeControl("unmute")
