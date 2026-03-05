@@ -17,6 +17,8 @@ except ImportError:
     from backend.TextToSpeech import speak
 import wikipedia
 import pyautogui
+from pycaw.pycaw import AudioUtilities
+
 # Load environment variables
 env_vars = dotenv_values(".env")
 GROQ_API_KEY = env_vars.get("GROQ_API_KEY", "").strip('"')
@@ -152,6 +154,32 @@ def WikiSummary(topic):
         print(f"[bold red]Wikipedia Error:[/bold red] {e}")
         return f"Error: {e}"
 
+def VolumeControl(action, step=0.1):
+    try:
+        devices = AudioUtilities.GetSpeakers()
+        volume = devices.EndpointVolume
+
+        current = volume.GetMasterVolumeLevelScalar()
+
+        if action == "volume up":
+            volume.SetMasterVolumeLevelScalar(min(1.0, current + step), None)
+            print("Volume Increased")
+
+        elif action == "volume down":
+            volume.SetMasterVolumeLevelScalar(max(0.0, current - step), None)
+            print("Volume Decreased")
+
+        elif action == "mute":
+            volume.SetMute(1, None)
+            print("Muted")
+
+        elif action == "unmute":
+            volume.SetMute(0, None)
+            print("Unmuted")
+
+    except Exception as e:
+        print("Volume Control Error:", e)
+
 def SystemCommand(cmd):
     try:
         if cmd == "shutdown":
@@ -164,9 +192,10 @@ def SystemCommand(cmd):
     except Exception as e:
         print(f"[bold red]System Command Error:[/bold red] {e}")
 
+
 # Example usage
 if __name__ == "__main__":
-    content = contentWrite("write research paper for block chain and AI")
+    # content = contentWrite("write research paper for block chain and AI")
     # print(f"Chatbot: {content}")
 
     # Uncomment to try features:
@@ -178,4 +207,10 @@ if __name__ == "__main__":
     # WikiSummary("Large Language Model")
     # SystemCommand("restart")
     # TakeScreenshot("test_screenshot.png")
-    # SystemCommand("shutdown")
+    # SystemCommand("restart")
+    # VolumeControl("increase")
+    # VolumeControl("increase")
+    # VolumeControl("increase")
+    # VolumeControl("decrease")
+    # VolumeControl("mute")
+    VolumeControl("unmute")

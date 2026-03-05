@@ -1,5 +1,6 @@
 AppOpener
 pywhatkit
+pyautogui
 python-dotenv
 beautifulsoup4
 rich
@@ -41,3 +42,4 @@ schedule
 moviepy
 tf-keras
 diffusers
+pydub
