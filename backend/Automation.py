@@ -55,7 +55,32 @@ def CloseApp(app_name):
 
 def OpenApp(app_name):
     print(f"[bold green]Opening: {app_name}[/bold green]")
-    appopen(app_name, match_closest=True)
+    
+    # Common websites mapping
+    websites = {
+        "youtube": "https://www.youtube.com",
+        "facebook": "https://www.facebook.com",
+        "google": "https://www.google.com",
+        "gmail": "https://mail.google.com",
+        "twitter": "https://www.twitter.com",
+        "instagram": "https://www.instagram.com",
+        "github": "https://www.github.com",
+        "whatsapp": "https://web.whatsapp.com"
+    }
+    
+    if app_name.lower() in websites:
+        webbrowser.open(websites[app_name.lower()])
+        return app_name
+
+    # If not a known website, try AppOpener
+    try:
+        # appopen might return "NOT FOUND" or just print it.
+        # Check AppOpener documentation for return values if needed.
+        appopen(app_name, match_closest=True)
+    except Exception as e:
+        print(f"AppOpener failed: {e}")
+        webbrowser.open(f"https://www.google.com/search?q={app_name}")
+        
     return app_name
 
 def contentWrite(query):
@@ -181,16 +206,36 @@ def VolumeControl(action, step=0.1):
         print("Volume Control Error:", e)
 
 def SystemCommand(cmd):
+    cmd = cmd.lower()
     try:
-        if cmd == "shutdown":
+        if "shutdown" in cmd:
             os.system("shutdown /s /t 1")
-        elif cmd == "restart":
+        elif "restart" in cmd:
             os.system("shutdown /r /t 1")
-        elif cmd == "sleep":
+        elif "sleep" in cmd:
+            # This command might hibernate if hibernation is enabled. 
             os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+        elif "log off" in cmd or "sign out" in cmd:
+            os.system("shutdown /l")
+        
         print(f"[bold green]Executed system command: {cmd}[/bold green]")
     except Exception as e:
         print(f"[bold red]System Command Error:[/bold red] {e}")
+
+def CreateFolder(folder_name):
+    try:
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+            path = os.path.abspath(folder_name)
+            print(f"[bold green]Folder created: {path}[/bold green]")
+            return f"Folder '{folder_name}' created at {path}"
+        else:
+            path = os.path.abspath(folder_name)
+            print(f"[bold yellow]Folder already exists: {path}[/bold yellow]")
+            return f"Folder '{folder_name}' already exists at {path}"
+    except Exception as e:
+        print(f"[bold red]Create Folder Error:[/bold red] {e}")
+        return f"Error creating folder: {e}"
 
 
 # Example usage

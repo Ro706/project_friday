@@ -5,6 +5,7 @@ from json import load, dump
 import datetime
 import os
 from dotenv import load_dotenv
+from backend.Database import AddMessage, GetMessages, ClearChatLog, InitDB
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,6 +15,9 @@ Username = os.getenv("USERNAME", "")
 GroqAPIKey = os.getenv("GROQ_API_KEY", "")
 Assistantname = "Friday"  # Define the assistant name
 
+# Initialize Database
+InitDB()
+
 # Initialize Groq client
 client = Groq(api_key=GroqAPIKey)
 
@@ -22,19 +26,6 @@ System = f"""Hello, I am {Username}. You are a very accurate and advanced AI cha
 *** Provide answers in a professional way, make sure to add full stops, commas, question marks, and use proper grammar. ***
 *** Just answer the question from the provided data in a professional way. ***
 """
-
-# Setup
-os.makedirs("data", exist_ok=True)
-chat_log_path = "data/ChatLog.json"
-
-# Load chat messages if available
-try:
-    with open(chat_log_path, "r") as f:
-        messages = load(f)
-except FileNotFoundError:
-    messages = []
-    with open(chat_log_path, "w") as f:
-        dump(messages, f, indent=4)
 
 # DuckDuckGo search function (replaces the unreliable google-search)
 def GoogleSearch(query):
@@ -91,14 +82,8 @@ def Information():
 
 # Main chatbot function
 def RealtimeInformation(prompt):
-    # Load chat history
-    try:
-        with open(chat_log_path, "r") as f:
-            messages = load(f)
-    except FileNotFoundError:
-        messages = []
-
-    messages.append({"role": "user", "content": prompt})
+    # Load chat history from Database
+    messages = GetMessages()
 
     # Dynamic system prompt with Google search
     system_chat_dynamic = BaseSystemChat + [
@@ -109,7 +94,7 @@ def RealtimeInformation(prompt):
     # Generate completion
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=system_chat_dynamic + messages,
+        messages=system_chat_dynamic + messages + [{"role": "user", "content": prompt}],
         max_completion_tokens=2048,
         temperature=0.7,
         top_p=1,
@@ -123,13 +108,21 @@ def RealtimeInformation(prompt):
             Answer += chunk.choices[0].delta.content
 
     Answer = Answer.strip().replace("</s>", "")
-    messages.append({"role": "assistant", "content": Answer})
-
-    # Save updated chat history
-    with open(chat_log_path, "w") as f:
-        dump(messages, f, indent=4)
+    
+    # Save updated chat history to Database
+    AddMessage("user", prompt)
+    AddMessage("assistant", Answer)
 
     return AnswerModifier(Answer)
+
+# CLI
+if __name__ == "__main__":
+    while True:
+        user_input = input("Enter your prompt: ")
+        if user_input.lower() == "exit":
+            break
+        response = RealtimeInformation(user_input)
+        print(f"Chatbot: {response}")
 
 # CLI
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
 .env
 .venv/
 *.jpg
+data/database.db

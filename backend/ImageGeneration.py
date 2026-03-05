@@ -47,6 +47,9 @@ def open_image(prompt):
 
 # Asynchronous image generation function
 async def generate_images(prompt: str):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path, exist_ok=True)
+        print(f"Folder created: {os.path.abspath(folder_path)}")
     tasks = []
     clean_prompt = sanitize_filename(prompt)
 

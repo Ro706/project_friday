@@ -44,6 +44,7 @@ class PhotoCaptureApp:
         downloads_folder = os.path.join(os.path.expanduser('~'), 'Downloads')
         if not os.path.exists(downloads_folder):
             os.makedirs(downloads_folder)
+            print(f"Folder created: {os.path.abspath(downloads_folder)}")
             
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path = os.path.join(downloads_folder, f"photo_{timestamp}.jpg")

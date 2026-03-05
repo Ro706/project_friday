@@ -17,8 +17,10 @@ from backend.Chatbot import Chatbot
 from backend.RealtimeSearchEngine import RealtimeInformation
 from backend.Automation import (
     OpenApp, CloseApp, GoogleSearch, YouTubeSearch, 
-    contentWrite, SystemCommand, VolumeControl, TakeScreenshot
+    contentWrite, SystemCommand, VolumeControl, TakeScreenshot,
+    CreateFolder
 )
+from backend.Features import ShowFeatures
 from backend.ImageGeneration import GenerateImage
 from backend.TextToSpeech import speak
 
@@ -119,8 +121,12 @@ def execute_task(task_query, original_prompt):
 
     elif task_query.startswith("play"):
         song_name = clean_query("play", task_query)
-        YouTubeSearch(song_name)
-        speak(f"Playing {song_name} on YouTube.")
+        if "spotify" in song_name.lower():
+            OpenApp("https://open.spotify.com/")
+            speak("Opening Spotify.")
+        else:
+            YouTubeSearch(song_name)
+            speak(f"Playing {song_name} on YouTube.")
 
     elif task_query.startswith("generate image"):
         prompt = clean_query("generate image", task_query)
@@ -134,6 +140,9 @@ def execute_task(task_query, original_prompt):
         elif cmd in ["screenshot", "take screenshot"]:
             TakeScreenshot()
             speak("Screenshot taken.")
+        elif cmd in ["features", "help", "menu"]:
+            ShowFeatures()
+            speak("Here are the features I can perform.")
         else:
             SystemCommand(cmd)
 
@@ -166,6 +175,12 @@ def execute_task(task_query, original_prompt):
     elif task_query.startswith("mail"):
         speak("Preparing to send an email.")
         send_mail()
+
+    elif task_query.startswith("create folder"):
+        folder_name = clean_query("create folder", task_query)
+        result = CreateFolder(folder_name)
+        # print(f"Friday: {result}") # result already has "Folder '...' created at ..."
+        speak(result)
 
     elif task_query == "exit":
         speak("Goodbye! Have a nice day.")

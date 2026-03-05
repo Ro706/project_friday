@@ -3,6 +3,7 @@ from json import load, dump
 import datetime
 import os
 from dotenv import dotenv_values
+from backend.Database import AddMessage, GetMessages, ClearChatLog, InitDB
 
 # Load environment variables from .env file
 env_vars = dotenv_values(".env")
@@ -11,6 +12,9 @@ env_vars = dotenv_values(".env")
 Username = env_vars.get("USERNAME", "").strip('"')
 GroqAPIKey = env_vars.get("GROQ_API_KEY", "").strip('"')
 Assistantname = "Friday"  # Define the assistant name
+
+# Initialize Database
+InitDB()
 
 # Initialize the Groq client correctly
 try:
@@ -29,19 +33,6 @@ System = f"""Hello, I am {Username}, You are a very accurate and advanced AI cha
 SystemChatBot = [
     {"role": "system", "content": System},
 ]
-
-# Ensure the data directory exists
-os.makedirs("data", exist_ok=True)
-
-# Load chat messages if available
-chat_log_path = r"data\ChatLog.json"
-try:
-    with open(chat_log_path, "r") as f:
-        messages = load(f)
-except FileNotFoundError:
-    messages = []
-    with open(chat_log_path, "w") as f:
-        dump(messages, f, indent=4)
 
 def RealtimeInformation():
     current_date_time = datetime.datetime.now()
@@ -73,17 +64,16 @@ def Chatbot(query):
              # Try to re-initialize if it failed earlier (e.g. environment set later)
              client = Groq(api_key=GroqAPIKey)
         
-        # Load previous messages
-        with open(chat_log_path, "r") as f:
-            messages = load(f)
+        # Load previous messages from Database
+        messages = GetMessages()
 
         # Add user message
-        messages.append({"role": "user", "content": query})
+        # messages.append({"role": "user", "content": query}) # Not needed to append here, we'll add to DB later
 
         # Get response
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages,
+            messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages + [{"role": "user", "content": query}],
             max_completion_tokens=1024,
             temperature=0.7,
             top_p=1,
@@ -98,11 +88,10 @@ def Chatbot(query):
 
         # Clean the answer
         Answer = Answer.replace("</s>", "")
-        messages.append({"role": "assistant", "content": Answer})
-
-        # Save updated messages
-        with open(chat_log_path, "w") as f:
-            dump(messages, f, indent=4)
+        
+        # Save updated messages to Database
+        AddMessage("user", query)
+        AddMessage("assistant", Answer)
 
         # Modify the final answer and return
         return AnswerModifier(Answer)
@@ -110,9 +99,16 @@ def Chatbot(query):
     except Exception as e:
         print(f"Error: {e}")
         # Clear chat log if error occurs
-        with open(chat_log_path, "w") as f:
-            dump([], f, indent=4)
+        ClearChatLog()
         return "An error occurred. Please try again."
+
+if __name__ == "__main__":
+    while True:
+        user_input = input("Enter your prompt: ")
+        if user_input.lower() == "exit":
+            break
+        response = Chatbot(user_input)
+        print(f"Chatbot: {response}")
 
 if __name__ == "__main__":
     while True:

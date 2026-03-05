@@ -20,7 +20,7 @@ co = cohere.Client(cohere_api_key)
 funcs = [
     "exit", "general", "realtime", "open", "close", "play",
     "generate image", "system", "content", "google search",
-    "youtube search", "reminder", "mail", "game"
+    "youtube search", "reminder", "mail", "game", "create folder"
 ]
 
 # ... (preamble)
@@ -109,11 +109,23 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
   - Query: "Set a reminder at 9:00 PM on 25th June for my business meeting."
     Response: "reminder 9:00 PM 25th June business meeting"
 
--> Respond with 'system (task name)' if a query is asking to perform system tasks like mute, unmute, volume up, volume down, etc. Examples:
+-> Respond with 'system (task name)' if a query is asking to perform system tasks like mute, unmute, volume up, volume down, shutdown, restart, sleep, features, help, menu, etc. Examples:
   - Query: "Mute the volume."
     Response: "system mute"
   - Query: "Increase the volume."
     Response: "system volume up"
+  - Query: "Shutdown the system."
+    Response: "system shutdown"
+  - Query: "Restart my computer."
+    Response: "system restart"
+  - Query: "Put the system to sleep."
+    Response: "system sleep"
+  - Query: "Show me the feature list."
+    Response: "system features"
+  - Query: "What can you do?"
+    Response: "system help"
+  - Query: "Open the menu."
+    Response: "system menu"
 
 -> Respond with 'content (topic)' if a query is asking to write any type of content like applications, codes, emails, or anything else about a specific topic. Examples:
   - Query: "Write an email to my boss."
@@ -138,6 +150,12 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
     Response: "game"
   - Query: "Play Tic Tac Toe."
     Response: "game tic tac toe"
+
+-> Respond with 'create folder (folder name)' if a query is asking to create a new folder. Examples:
+  - Query: "Create a folder named raj."
+    Response: "create folder raj"
+  - Query: "Make a new folder called photos."
+    Response: "create folder photos"
 
 *** If the query is asking to perform multiple tasks like 'open Facebook, Telegram and close WhatsApp', respond with 'open Facebook, open Telegram, close WhatsApp'. ***
 *** If the user is saying goodbye or wants to end the conversation like 'bye Friday.', respond with 'exit'. ***
