@@ -37,7 +37,7 @@ def ShowFeatures():
     # Core
     table.add_row("🛠 Core", "Hardware Info", "Check CPU / Ram information")
     table.add_row("", "Communication", "Send a mail")
-    table.add_row("", "Games", "Play a game / Play Tic Tac Toe")
+    table.add_row("", "Games", "Play Tic Tac Toe / Ball Bouncing / Snake / Rock Paper Scissors")
 
     # Display everything in a Panel
     console.print(Panel(table, title="[bold white]FRIDAY MENU[/bold white]", border_style="blue", expand=False))

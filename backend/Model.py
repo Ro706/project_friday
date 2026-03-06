@@ -150,6 +150,10 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
     Response: "game"
   - Query: "Play Tic Tac Toe."
     Response: "game tic tac toe"
+  - Query: "I want to play Snake."
+    Response: "game snake"
+  - Query: "Play Rock Paper Scissors."
+    Response: "game rock paper scissors"
 
 -> Respond with 'create folder (folder name)' if a query is asking to create a new folder. Examples:
   - Query: "Create a folder named raj."

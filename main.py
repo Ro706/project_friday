@@ -35,6 +35,8 @@ from core.mail import send_mail
 # Import game modules
 import game1
 import game2
+import game3
+import game4
 
 # Load environment variables
 load_dotenv()
@@ -42,7 +44,7 @@ USERNAME = os.getenv("USERNAME", "User")
 
 def handle_game_selection():
     """Handles interactive game selection when no game is specified."""
-    msg = "Which game would you like to play? 1. Tic Tac Toe, 2. Ball Bouncing"
+    msg = "Which game would you like to play? 1. Tic Tac Toe, 2. Ball Bouncing, 3. Snake, 4. Rock Paper Scissors"
     print(f"Friday: {msg}")
     speak(msg)
     
@@ -53,6 +55,12 @@ def handle_game_selection():
     elif "2" in choice or "ball" in choice:
         speak("Starting Ball Bouncing Game.")
         game2.start_game()
+    elif "3" in choice or "snake" in choice:
+        speak("Starting Snake Game.")
+        game3.start_game()
+    elif "4" in choice or "rock" in choice or "scissors" in choice or "paper" in choice:
+        speak("Starting Rock Paper Scissors.")
+        game4.start_game()
     else:
         err_msg = "Invalid selection. Please try again with a game name or number."
         print(f"Friday: {err_msg}")
@@ -108,6 +116,12 @@ def execute_task(task_query, original_prompt):
             elif "ball" in app_name.lower() or "2" in app_name.lower():
                 speak("Starting Ball Bouncing Game.")
                 game2.start_game()
+            elif "snake" in app_name.lower() or "3" in app_name.lower():
+                speak("Starting Snake Game.")
+                game3.start_game()
+            elif "rock" in app_name.lower() or "4" in app_name.lower():
+                speak("Starting Rock Paper Scissors.")
+                game4.start_game()
             else:
                 handle_game_selection()
         else:
@@ -169,6 +183,12 @@ def execute_task(task_query, original_prompt):
         elif "ball" in game_name or "2" in game_name:
             speak("Starting Ball Bouncing Game.")
             game2.start_game()
+        elif "snake" in game_name or "3" in game_name:
+            speak("Starting Snake Game.")
+            game3.start_game()
+        elif "rock" in game_name or "4" in game_name:
+            speak("Starting Rock Paper Scissors.")
+            game4.start_game()
         else:
             handle_game_selection()
 
