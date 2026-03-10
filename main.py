@@ -30,7 +30,8 @@ from core.weather import tellmeTodaysWeather
 from core.cpu_info import cpu_info
 from core.ram_info import RamInfo
 from core.PhotoCaptureApp import create_gui
-from core.mail import send_mail
+from core.mail import send_mail, send_whatsapp
+from core.reminders import set_reminder
 
 # Import game modules
 import game1
@@ -194,7 +195,24 @@ def execute_task(task_query, original_prompt):
 
     elif task_query.startswith("mail"):
         speak("Preparing to send an email.")
-        send_mail()
+        send_mail(original_prompt)
+
+    elif task_query.startswith("whatsapp"):
+        speak("Preparing to send a WhatsApp message.")
+        send_whatsapp()
+
+    elif task_query.startswith("reminder"):
+        # Expecting something like "reminder 10 minutes (to) buy milk"
+        clean_msg = clean_query("reminder", task_query)
+        parts = clean_msg.split()
+        if len(parts) >= 3:
+            time_val = f"{parts[0]} {parts[1]}"
+            rem_msg = " ".join(parts[2:])
+            result = set_reminder(time_val, rem_msg)
+            print(f"Friday: {result}")
+            speak(result)
+        else:
+            speak("Please specify a time and a message for the reminder. For example, 5 minutes buy milk.")
 
     elif task_query.startswith("create folder"):
         folder_name = clean_query("create folder", task_query)
@@ -206,24 +224,60 @@ def execute_task(task_query, original_prompt):
         speak("Goodbye! Have a nice day.")
         sys.exit()
 
+def authenticate():
+    """Simple password-based authentication for the assistant."""
+    attempts = 3
+    speak("Authentication required. Please enter your password.")
+    
+    while attempts > 0:
+        password = input(f"\n[Security]: Enter Password ({attempts} attempts left): ").strip()
+        
+        if password == "rohit21":
+            speak("Access granted. Welcome back, Rohit.")
+            return True
+        else:
+            attempts -= 1
+            if attempts > 0:
+                msg = "Incorrect password. Please try again."
+                print(f"Friday: {msg}")
+                speak(msg)
+            else:
+                msg = "Too many failed attempts. Shutting down."
+                print(f"Friday: {msg}")
+                speak(msg)
+                sys.exit()
+    return False
+
 def main():
+    # Perform authentication first
+    if not authenticate():
+        return
+
     msg = f"Hello {USERNAME}, I am Friday. How can I help you today?"
     print(f"\n[Friday]: {msg}")
     speak(msg)
 
-    while True:
-        # Get Text Input
-        query = input(f"\n[{USERNAME}]: ").strip()
-        
-        if not query:
-            continue
+    try:
+        while True:
+            # Get Text Input
+            query = input(f"\n[{USERNAME}]: ").strip()
+            
+            if not query:
+                continue
 
-        # Classify query
-        tasks = FirstLayerDMM(query)
-        
-        # Execute tasks
-        for task in tasks:
-            execute_task(task, query)
+            # Classify query
+            tasks = FirstLayerDMM(query)
+            
+            # Execute tasks
+            for task in tasks:
+                execute_task(task, query)
+    except KeyboardInterrupt:
+        print("\n\n[Friday]: Detected Ctrl+C. Shutting down gracefully...")
+        speak("Goodbye! Shutting down now.")
+        sys.exit()
+    except Exception as e:
+        print(f"\n[Friday]: An unexpected error occurred: {e}")
+        sys.exit()
 
 if __name__ == "__main__":
     main()

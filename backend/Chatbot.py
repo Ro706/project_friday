@@ -11,12 +11,12 @@ env_vars = dotenv_values(".env")
 # Get the API key and username from environment variables
 Username = env_vars.get("USERNAME", "").strip('"')
 GroqAPIKey = env_vars.get("GROQ_API_KEY", "").strip('"')
-Assistantname = "Friday"  # Define the assistant name
+Assistantname = "Friday"
 
 # Initialize Database
 InitDB()
 
-# Initialize the Groq client correctly
+# Initialize the Groq client
 try:
     client = Groq(api_key=GroqAPIKey)
 except Exception as e:
@@ -59,56 +59,57 @@ def AnswerModifier(Answer):
 
 def Chatbot(query):
     global client
+    # List of supported models to try in order of preference
+    models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
+    
     try:
         if not client:
-             # Try to re-initialize if it failed earlier (e.g. environment set later)
              client = Groq(api_key=GroqAPIKey)
         
-        # Load previous messages from Database
         messages = GetMessages()
+        combined_messages = SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages + [{"role": "user", "content": query}]
 
-        # Add user message
-        # messages.append({"role": "user", "content": query}) # Not needed to append here, we'll add to DB later
+        completion = None
+        for model_name in models:
+            try:
+                completion = client.chat.completions.create(
+                    model=model_name,
+                    messages=combined_messages,
+                    max_completion_tokens=1024,
+                    temperature=0.7,
+                    top_p=1,
+                    stream=True,
+                    stop=None
+                )
+                # If we successfully start a stream, break the model loop
+                if completion:
+                    print(f"[System]: Using AI Model: {model_name}")
+                    break
+            except Exception as e:
+                if "rate_limit_exceeded" in str(e).lower():
+                    print(f"[Warning]: {model_name} rate limit reached. Trying fallback...")
+                    continue
+                else:
+                    raise e
 
-        # Get response
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages + [{"role": "user", "content": query}],
-            max_completion_tokens=1024,
-            temperature=0.7,
-            top_p=1,
-            stream=True,
-            stop=None
-        )
+        if not completion:
+            return "Error: All available AI models are currently busy or rate-limited. Please try again later."
 
         Answer = ""
         for chunk in completion:
             if chunk.choices[0].delta.content:
                 Answer += chunk.choices[0].delta.content
 
-        # Clean the answer
         Answer = Answer.replace("</s>", "")
-        
-        # Save updated messages to Database
         AddMessage("user", query)
         AddMessage("assistant", Answer)
 
-        # Modify the final answer and return
         return AnswerModifier(Answer)
 
     except Exception as e:
-        print(f"Error: {e}")
-        # Clear chat log if error occurs
-        ClearChatLog()
-        return "An error occurred. Please try again."
-
-if __name__ == "__main__":
-    while True:
-        user_input = input("Enter your prompt: ")
-        if user_input.lower() == "exit":
-            break
-        response = Chatbot(user_input)
-        print(f"Chatbot: {response}")
+        print(f"Chatbot Error: {e}")
+        # ClearChatLog() # Optional: decide if you want to clear log on every error
+        return f"I encountered an error while processing your request: {str(e)[:100]}..."
 
 if __name__ == "__main__":
     while True:
