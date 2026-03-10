@@ -1,88 +1,102 @@
-# Friday AI Assistant
+# Friday AI Assistant: Advanced Modular Ecosystem
 
-Friday is a modular, high-performance personal AI assistant built with Python. It features a decentralized architecture where specialized modules handle conversation, real-time data, system automation, and entertainment.
+Friday is a cutting-edge, high-performance personal AI assistant built with a decentralized Python architecture. It leverages a sophisticated multi-model strategy to provide real-time information, system automation, and intelligent communication.
 
-## 🚀 Features
+## 🏗️ Architectural Overview
 
-### 🤖 Intelligent Chat & Real-time Search
-- **Conversational AI**: Powered by Groq (Llama 3.3) for fast, natural interactions.
-- **Real-time Information**: Integrated DuckDuckGo search for up-to-the-minute news, weather, and facts.
-- **Decision Logic**: Uses a Cohere-powered Decision Making Model (DMM) to route queries to the correct specialized tool.
-
-### 🛠️ System Automation
-- **App Management**: Open and close any installed application or website.
-- **System Control**: Volume adjustment, muting, and screenshots via `pyautogui` and `pycaw`.
-- **Content Creation**: Generate emails, scripts, or research papers directly into Notepad.
-
-### 🎨 Creativity & Utility
-- **Image Generation**: High-quality 4K image generation using Stable Diffusion XL via Hugging Face.
-- **System Diagnostics**: Real-time CPU and RAM usage reports.
-- **Email Integration**: Send emails directly through SMTP.
-- **Camera Access**: Built-in photo capture application.
-
-### 🎮 Gaming
-- **Tic Tac Toe**: Intelligent AI-driven board game with hint support.
-- **Ultra Breakout**: Advanced arcade game with levels, power-ups, and particle effects.
-
-## 🔄 Project Flow
-
-The following diagram illustrates the complete lifecycle of a user request within the Friday ecosystem:
+Friday operates on a **Research -> Strategy -> Execution** lifecycle, visualized in the following system architecture:
 
 ```mermaid
 graph TD
     A[User Input: Text] --> B{main.py: Orchestrator}
-    B -- "Initializes Env & Paths" --> C[backend/Model.py: DMM]
-    C -- "Classification via Cohere" --> D{Task Router}
+    B -- "1. Auth Layer" --> C[authenticate: Password Check]
+    C -- "Access Granted" --> D[backend/Model.py: DMM]
+    C -- "Access Denied" --> E[System Exit]
     
-    D -- "general" --> E[backend/Chatbot.py: Llama 3.3]
-    D -- "realtime (Search)" --> F[backend/RealtimeSearchEngine.py]
-    D -- "realtime (Stats/Env)" --> G[core/: cpu/ram/news/weather]
-    D -- "open/close/search/system/content" --> H[backend/Automation.py]
-    D -- "generate image" --> I[backend/ImageGeneration.py: SDXL]
-    D -- "game" --> J[game/: game1 / game2]
-    D -- "mail" --> K[core/mail.py]
-    D -- "create folder" --> H
+    D -- "Classification via Cohere" --> F{Task Router}
     
-    E & F -- "Chat Persistence" --> P[(backend/Database.py: SQLite)]
+    F -- "general" --> G[backend/Chatbot.py: Llama 3.3 / 3.1 Fallback]
+    F -- "realtime (Search/Stats)" --> H[backend/RealtimeSearchEngine.py]
+    F -- "mail / whatsapp" --> I[core/mail.py: AI Extraction & HTML Drafting]
+    F -- "reminder" --> J[core/reminders.py: Background Threading]
+    F -- "automation" --> K[backend/Automation.py: OS/Web Tasks]
+    F -- "generate image" --> L[backend/ImageGeneration.py: SDXL]
+    F -- "game" --> M[game/: AI Interactive Games]
     
-    E & F & G & H & I & J & K -- "Returns Response" --> L{main.py: Output Handler}
-    L -- "speak()" --> M[backend/TextToSpeech.py: pyttsx3]
-    L -- "print()" --> N[Terminal / Rich Display]
-    M & N -- "Final Output" --> O[User Experience]
+    G & H & I & K -- "Persistence" --> N[(backend/Database.py: SQLite)]
+    
+    G & H & I & J & K & L & M -- "Collects Response" --> O{Output Handler}
+    O -- "speak()" --> P[backend/TextToSpeech.py: TTS]
+    O -- "print()" --> Q[Terminal / Rich UI]
+    P & Q -- "User Experience" --> R[Final Response]
 ```
 
-## 🔄 Workflow Lifecycle
+Friday's decentralized logic ensures that each module operates independently, while `main.py` maintains the state and security of the entire session.
 
-1.  **Input Phase**: User enters a text command into the terminal interface.
-2.  **Analysis Phase**: `Model.py` (Decision Making Model) uses Cohere LLM to determine the intent. It supports 15+ classifications including `general`, `realtime`, `open`, `close`, `play`, `generate image`, `system`, `content`, `google search`, `youtube search`, `reminder`, `mail`, `game`, and `create folder`.
-3.  **Routing Phase**: `main.py` parses the prefix and routes the query to the specialized module (Backend, Core, or Game).
-4.  **Execution Phase**:
-    *   **Conversational**: Llama 3.3 handles logic and knowledge queries, with history managed by `Database.py`.
-    *   **Automation**: System-level commands (volume, screenshots, app management) and web automation via `Automation.py`.
-    *   **Information**: Real-time news, weather, and system diagnostics (CPU/RAM).
-    *   **Creativity**: SDXL for image generation and LLM for content writing.
-    *   **Persistence**: SQLite-based chat logging ensures context across interactions.
-5.  **Feedback Phase**: Responses are simultaneously displayed with rich terminal formatting and spoken aloud via the `TextToSpeech` engine.
+---
 
-## 🛠️ Setup & Requirements
+## 🚀 Key Features & Capabilities
 
-1.  **Environment Variables**: Create a `.env` file in the root directory with the following keys:
+### 🔐 Security & User Experience
+- **Biometric-Style Auth**: Password-protected startup (`rohit21`) with failed-attempt lockout.
+- **Graceful Interruption**: Integrated `KeyboardInterrupt` (`Ctrl+C`) handling for safe system exits.
+- **Voice Feedback**: Synchronized Text-to-Speech (TTS) for all assistant responses.
+
+### 📧 Intelligent Communication (AI-Enhanced)
+- **Natural Language Extraction**: Tell Friday "Send an email to X about Y," and it will automatically extract the recipient and subject without further prompts.
+- **Professional Drafting**: Generates long-form, sophisticated emails with **bolded highlights** and perfect **HTML spacing**.
+- **WhatsApp Integration**: Automated messaging with a "Review & Confirm" safety workflow.
+
+### 🛠️ System & Task Automation
+- **Multi-Threaded Reminders**: Set background timers with audible beep alerts and voice notifications.
+- **Deep System Control**: Manage volume, take screenshots, and open/close any Windows application or website.
+- **File Management**: Create and organize folders via voice or text commands.
+- **Content Generation**: Write code, essays, or scripts directly to files.
+
+### 🔍 Real-time Intelligence & Creativity
+- **Hardware Monitoring**: Real-time tracking of CPU and RAM performance.
+- **Live Information**: Instant access to weather, news, and Google/YouTube search results.
+- **Creative Suite**: AI-powered 4K image generation using Stable Diffusion XL (Hugging Face).
+
+### 🎮 Gaming Module
+- **AI Games**: Collection of interactive games including Tic Tac Toe, Snake, and Rock Paper Scissors with intelligent logic.
+
+---
+
+## 💻 Technology Stack
+
+- **Core**: Python 3.10+
+- **LLMs**: Groq (Llama 3.3/3.1), Cohere (Command-R), Hugging Face (SDXL).
+- **Automation**: `pyautogui`, `AppOpener`, `pywhatkit`, `selenium`.
+- **Database**: SQLite (for persistent chat history and context).
+- **UI/UX**: Rich (Terminal Formatting), `pyttsx3` (TTS), `PyQt5`.
+- **Networking**: `smtplib` (Email), `requests` (APIs), `Flask` (Web integration).
+
+---
+
+## 🛠️ Setup & Installation
+
+1.  **Clone the Repository** and navigate to the project root.
+2.  **Configure Environment**: Create a `.env` file with the following:
     ```env
-    GROQ_API_KEY=your_key_here
-    COHERE_API_KEY=your_key_here
-    HUGGINGFACE_API_KEY=your_key_here
-    USERNAME=your_name
-    EMAIL_PASSWORD=your_app_password
-    NEWS_API=your_newsapi_org_key
+    USERNAME="YourName"
+    GROQ_API_KEY="your_groq_key"
+    COHERE_API_KEY="your_cohere_key"
+    GEMINI_API_KEY="your_gemini_key"
+    SENDER_EMAIL="your_gmail@gmail.com"
+    EMAIL_PASSWORD="your_16_char_app_password"
+    HUGGINGFACE_API_KEY="your_hf_key"
+    OPENWEATHER_API_KEY="your_weather_key"
+    NEWS_API="your_news_key"
     ```
-2.  **Install Dependencies**:
+3.  **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Run Assistant**:
+4.  **Run Friday**:
     ```bash
     python main.py
     ```
 
 ## ⚖️ License
-This project is for educational and personal automation purposes.
+This project is intended for personal automation and educational exploration of multi-model AI systems.
