@@ -43,3 +43,7 @@ moviepy
 tf-keras
 diffusers
 pydub
+faiss-cpu
+PyPDF2
+markdown
+numpy

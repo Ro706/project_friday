@@ -20,7 +20,8 @@ co = cohere.Client(cohere_api_key)
 funcs = [
     "exit", "general", "realtime", "open", "close", "play",
     "generate image", "system", "content", "google search",
-    "youtube search", "reminder", "mail", "game", "create folder"
+    "youtube search", "reminder", "mail", "game", "create folder",
+    "knowledge"
 ]
 
 # ... (preamble)
@@ -160,6 +161,16 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
     Response: "create folder raj"
   - Query: "Make a new folder called photos."
     Response: "create folder photos"
+
+-> Respond with 'knowledge (topic)' if a query is asking for information about your personal documents, notes, or files in your vault. Examples:
+  - Query: "What's in my meeting notes?"
+    Response: "knowledge meeting notes"
+  - Query: "Tell me about the project plan file."
+    Response: "knowledge project plan"
+  - Query: "What did I write in my diary?"
+    Response: "knowledge diary"
+  - Query: "Check my vault for the secret code."
+    Response: "knowledge secret code"
 
 *** If the query is asking to perform multiple tasks like 'open Facebook, Telegram and close WhatsApp', respond with 'open Facebook, open Telegram, close WhatsApp'. ***
 *** If the user is saying goodbye or wants to end the conversation like 'bye Friday.', respond with 'exit'. ***

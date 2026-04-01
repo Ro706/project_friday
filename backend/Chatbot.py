@@ -57,7 +57,7 @@ def AnswerModifier(Answer):
     modified_answer = '\n'.join(non_empty_lines)
     return modified_answer
 
-def Chatbot(query):
+def Chatbot(query, context=None):
     global client
     # List of supported models to try in order of preference
     models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
@@ -67,7 +67,14 @@ def Chatbot(query):
              client = Groq(api_key=GroqAPIKey)
         
         messages = GetMessages()
-        combined_messages = SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages + [{"role": "user", "content": query}]
+        
+        # Prepare system prompt with optional context
+        current_system = System
+        if context:
+            current_system += f"\n\n[CONTEXT FROM KNOWLEDGE VAULT]:\n{context}\n\nUsing the above context, answer the user's question accurately."
+
+        system_messages = [{"role": "system", "content": current_system}, {"role": "system", "content": RealtimeInformation()}]
+        combined_messages = system_messages + messages + [{"role": "user", "content": query}]
 
         completion = None
         for model_name in models:

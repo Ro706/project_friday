@@ -17,12 +17,14 @@ graph TD
     
     F -- "general" --> G[backend/Chatbot.py: Llama 3.3 / 3.1 Fallback]
     F -- "realtime (Search/Stats)" --> H[backend/RealtimeSearchEngine.py]
+    F -- "knowledge (Vault/RAG)" --> RAG[core/KnowledgeVault.py]
     F -- "mail / whatsapp" --> I[core/mail.py: AI Extraction & HTML Drafting]
     F -- "reminder" --> J[core/reminders.py: Background Threading]
     F -- "automation" --> K[backend/Automation.py: OS/Web Tasks]
     F -- "generate image" --> L[backend/ImageGeneration.py: SDXL]
     F -- "game" --> M[game/: AI Interactive Games]
     
+    RAG -- "Semantic Retrieval" --> G
     G & H & I & K -- "Persistence" --> N[(backend/Database.py: SQLite)]
     
     G & H & I & J & K & L & M -- "Collects Response" --> O{Output Handler}
@@ -36,6 +38,11 @@ Friday's decentralized logic ensures that each module operates independently, wh
 ---
 
 ## 🚀 Key Features & Capabilities
+
+### 📚 Knowledge Vault (RAG) - *New!*
+- **PDF & Document Summarization**: Automatically reads and analyzes `.pdf`, `.txt`, and `.md` files in your local vault.
+- **Semantic Retrieval**: Uses high-performance vector search (FAISS) to find exact answers from your notes even if they are hundreds of pages long.
+- **Contextual Intelligence**: Ask Friday anything about your personal documents, and it will respond with precise, grounded information.
 
 ### 🔐 Security & User Experience
 - **Biometric-Style Auth**: Password-protected startup (`rohit21`) with failed-attempt lockout.
@@ -67,6 +74,7 @@ Friday's decentralized logic ensures that each module operates independently, wh
 
 - **Core**: Python 3.10+
 - **LLMs**: Groq (Llama 3.3/3.1), Cohere (Command-R), Hugging Face (SDXL).
+- **Vector Search**: FAISS (Facebook AI Similarity Search).
 - **Automation**: `pyautogui`, `AppOpener`, `pywhatkit`, `selenium`.
 - **Database**: SQLite (for persistent chat history and context).
 - **UI/UX**: Rich (Terminal Formatting), `pyttsx3` (TTS), `PyQt5`.
@@ -93,7 +101,11 @@ Friday's decentralized logic ensures that each module operates independently, wh
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Run Friday**:
+4.  **Index Your Vault**: Place your PDFs/notes in `data/Vault/` and run:
+    ```bash
+    python core/VaultIndexer.py
+    ```
+5.  **Run Friday**:
     ```bash
     python main.py
     ```

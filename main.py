@@ -23,6 +23,7 @@ from backend.Automation import (
 from backend.Features import ShowFeatures
 from backend.ImageGeneration import GenerateImage
 from backend.TextToSpeech import speak
+from core.KnowledgeVault import KnowledgeVault
 
 # Import core modules
 from core.news import news_report
@@ -219,6 +220,20 @@ def execute_task(task_query, original_prompt):
         result = CreateFolder(folder_name)
         # print(f"Friday: {result}") # result already has "Folder '...' created at ..."
         speak(result)
+
+    elif task_query.startswith("knowledge"):
+        topic = clean_query("knowledge", task_query)
+        print(f"[bold blue][System]: Searching Knowledge Vault for: {topic}...[/bold blue]")
+        speak("Searching your knowledge vault.")
+        vault = KnowledgeVault()
+        context = vault.get_relevant_context(topic)
+        if context:
+            response = Chatbot(topic, context=context)
+        else:
+            response = "I couldn't find any relevant information in your vault. Should I search the internet instead?"
+        
+        print(f"Friday: {response}")
+        speak(response)
 
     elif task_query == "exit":
         speak("Goodbye! Have a nice day.")
