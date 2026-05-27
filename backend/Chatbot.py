@@ -8,9 +8,10 @@ from backend.Database import AddMessage, GetMessages, ClearChatLog, InitDB
 # Load environment variables from .env file
 env_vars = dotenv_values(".env")
 
-# Get the API key and username from environment variables
+# Get the API key, username and model from environment variables
 Username = env_vars.get("USERNAME", "").strip('"')
 GroqAPIKey = env_vars.get("GROQ_API_KEY", "").strip('"')
+ModelName = env_vars.get("MODEL_NAME", "llama-3.3-70b-versatile").strip('"')
 Assistantname = "Friday"
 
 # Initialize Database
@@ -59,8 +60,6 @@ def AnswerModifier(Answer):
 
 def Chatbot(query, context=None):
     global client
-    # List of supported models to try in order of preference
-    models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
     
     try:
         if not client:
@@ -76,31 +75,17 @@ def Chatbot(query, context=None):
         system_messages = [{"role": "system", "content": current_system}, {"role": "system", "content": RealtimeInformation()}]
         combined_messages = system_messages + messages + [{"role": "user", "content": query}]
 
-        completion = None
-        for model_name in models:
-            try:
-                completion = client.chat.completions.create(
-                    model=model_name,
-                    messages=combined_messages,
-                    max_completion_tokens=1024,
-                    temperature=0.7,
-                    top_p=1,
-                    stream=True,
-                    stop=None
-                )
-                # If we successfully start a stream, break the model loop
-                if completion:
-                    print(f"[System]: Using AI Model: {model_name}")
-                    break
-            except Exception as e:
-                if "rate_limit_exceeded" in str(e).lower():
-                    print(f"[Warning]: {model_name} rate limit reached. Trying fallback...")
-                    continue
-                else:
-                    raise e
-
-        if not completion:
-            return "Error: All available AI models are currently busy or rate-limited. Please try again later."
+        completion = client.chat.completions.create(
+            model=ModelName,
+            messages=combined_messages,
+            max_completion_tokens=1024,
+            temperature=0.7,
+            top_p=1,
+            stream=True,
+            stop=None
+        )
+        
+        print(f"[System]: Using AI Model: {ModelName}")
 
         Answer = ""
         for chunk in completion:
@@ -115,7 +100,8 @@ def Chatbot(query, context=None):
 
     except Exception as e:
         print(f"Chatbot Error: {e}")
-        # ClearChatLog() # Optional: decide if you want to clear log on every error
+        if "rate_limit_exceeded" in str(e).lower():
+            return "Error: The AI model rate limit has been reached. Please wait a moment before trying again."
         return f"I encountered an error while processing your request: {str(e)[:100]}..."
 
 if __name__ == "__main__":

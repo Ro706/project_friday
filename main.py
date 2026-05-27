@@ -239,6 +239,12 @@ def execute_task(task_query, original_prompt):
         speak("Goodbye! Have a nice day.")
         sys.exit()
 
+    else:
+        # Fallback for unexpected task queries or "error"
+        err_msg = "I'm sorry, I encountered an issue processing that request. Could you please try rephrasing it?"
+        print(f"Friday: {err_msg}")
+        speak(err_msg)
+
 def authenticate():
     """Simple password-based authentication for the assistant."""
     attempts = 3

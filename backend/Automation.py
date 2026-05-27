@@ -12,9 +12,9 @@ import keyboard
 import asyncio
 import os
 try:
-    from TextToSpeech import speak
-except ImportError:
     from backend.TextToSpeech import speak
+except ImportError:
+    from TextToSpeech import speak
 import wikipedia
 import pyautogui
 from pycaw.pycaw import AudioUtilities
