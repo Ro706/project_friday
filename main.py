@@ -287,12 +287,17 @@ def main():
             if not query:
                 continue
 
-            # Classify query
-            tasks = FirstLayerDMM(query)
-            
-            # Execute tasks
-            for task in tasks:
-                execute_task(task, query)
+            try:
+                # Classify query
+                tasks = FirstLayerDMM(query)
+                
+                # Execute tasks
+                for task in tasks:
+                    execute_task(task, query)
+            except Exception as task_err:
+                print(f"\n[Friday]: An error occurred while executing the task: {task_err}")
+                speak("I encountered an issue while processing that request, but I am still here to help.")
+
     except KeyboardInterrupt:
         print("\n\n[Friday]: Detected Ctrl+C. Shutting down gracefully...")
         speak("Goodbye! Shutting down now.")
