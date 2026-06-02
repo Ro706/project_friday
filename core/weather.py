@@ -1,12 +1,14 @@
 import requests
-from backend.TextToSpeech import speak
+import dotenv
 import geocoder
+import os
+dotenv.load_dotenv()
 
 class weather:
     def __init__(self,city) :
         self.city = city
     def weather(self):
-        api_key ='04018081b69cca6f721c5ed1a46be071'
+        api_key = os.getenv("weather_api")
         base_url = 'https://api.openweathermap.org/data/2.5/weather?'
         url = base_url+'appid='+api_key+'&q='+self.city+'&units=metric'
         response = requests.get(url)
@@ -19,15 +21,14 @@ class weather:
             temp_max = x['main']['temp_max']
             
             report = f"Weather in {city_name}: {weather_desc}, Temperature: {temp}°C, Min: {temp_min}°C, Max: {temp_max}°C"
-            speak(report)
             return report
         else:
             return "City not found"
 
 def tellmeTodaysWeather():
     g = geocoder.ip('me')
-    name = g.city
-    obj = weather(name)
+    city = g.city
+    obj = weather(city)
     return obj.weather()
 
 if __name__ == "__main__":
