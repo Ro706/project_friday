@@ -4,6 +4,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import sys
 import threading
 import subprocess
+from getpass4 import getpass
 from dotenv import load_dotenv
 
 # Add subdirectories to path if necessary
@@ -251,7 +252,7 @@ def authenticate():
     speak("Authentication required. Please enter your password.")
     
     while attempts > 0:
-        password = input(f"\n[Security]: Enter Password ({attempts} attempts left): ").strip()
+        password = getpass(f"\n[Security]: Enter Password ({attempts} attempts left): ").strip()
         
         if password == "rohit21":
             speak("Access granted. Welcome back, Rohit.")
