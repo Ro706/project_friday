@@ -34,6 +34,8 @@ from core.ram_info import RamInfo
 from core.PhotoCaptureApp import create_gui
 from core.mail import send_mail, send_whatsapp
 from core.reminders import set_reminder
+from auth.password import init_db
+from auth.checkPassword import check_password
 
 # Import game modules
 import game1
@@ -43,7 +45,9 @@ import game4
 
 # Load environment variables
 load_dotenv()
-USERNAME = os.getenv("USERNAME", "User")
+init_db()
+# Global variable for username
+USERNAME = None
 
 def handle_game_selection():
     """Handles interactive game selection when no game is specified."""
@@ -252,11 +256,11 @@ def authenticate():
     speak("Authentication required. Please enter your password.")
     
     while attempts > 0:
+        USERNAME = input(f"\n[Security]: Enter Username ({attempts} attempts left): ").strip()
         password = getpass.getpass(f"\n[Security]: Enter Password ({attempts} attempts left): ").strip()
-        
-        if password == "rohit21":
-            speak("Access granted. Welcome back, Rohit.")
-            return True
+        if check_password(USERNAME, password):
+            speak(f"Access granted. Welcome back, {USERNAME}.")
+            return [True , USERNAME]
         else:
             attempts -= 1
             if attempts > 0:
@@ -272,9 +276,11 @@ def authenticate():
 
 def main():
     # Perform authentication first
-    if not authenticate():
+    auth_result = authenticate()
+    if not auth_result[0]:
         return
 
+    USERNAME = auth_result[1]  # Set the global USERNAME variable
     msg = f"Hello {USERNAME}, I am Friday. How can I help you today?"
     print(f"\n[Friday]: {msg}")
     speak(msg)

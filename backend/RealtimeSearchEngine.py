@@ -86,9 +86,6 @@ def RealtimeInformation(prompt):
     # Load chat history from Database
     messages = GetMessages()
 
-    # List of supported models to try in order of preference
-    models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "qwen/qwen3-32b", "openai/gpt-oss-120b", "meta-llama/llama-4-scout-17b-16e-instruct"]
-
     # Dynamic system prompt with Google search
     system_chat_dynamic = BaseSystemChat + [
         {"role": "system", "content": GoogleSearch(prompt)},
@@ -122,13 +119,8 @@ def RealtimeInformation(prompt):
                 print(f"[System]: Using AI Model: {model_name}")
                 break
         except Exception as e:
-<<<<<<< HEAD
             if "rate_limit_exceeded" in str(e).lower() or "not_found" in str(e).lower():
                 print(f"[Warning]: {model_name} failed or rate limit reached. Trying fallback...")
-=======
-            if "rate_limit_exceeded" in str(e).lower():
-                print(f"[Warning]: {model_name} rate limit reached. Trying fallback...")
->>>>>>> c45f8726ccebf720e7a480630bc6f6a653408e8c
                 continue
             else:
                 raise e
