@@ -38,20 +38,11 @@ def AddMessage(role, content):
         db.session.add(new_log)
         db.session.commit()
 
-<<<<<<< HEAD
 def GetMessages(limit=20):
     with app.app_context():
         logs = ChatLog.query.order_by(ChatLog.timestamp.desc()).limit(limit).all()
         logs.reverse()
         return [log.to_dict() for log in logs]
-=======
-def GetMessages(limit=10):
-    with app.app_context():
-        # Get the latest 'limit' messages, but keep them in ascending order for the LLM
-        logs = ChatLog.query.order_by(ChatLog.timestamp.desc()).limit(limit).all()
-        # Reverse them to get ascending order
-        return [log.to_dict() for log in reversed(logs)]
->>>>>>> c45f8726ccebf720e7a480630bc6f6a653408e8c
 
 def ClearChatLog():
     with app.app_context():
