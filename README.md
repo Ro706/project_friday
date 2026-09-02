@@ -28,9 +28,8 @@ graph TD
     G & H & I & K -- "Persistence" --> N[(backend/Database.py: SQLite)]
     
     G & H & I & J & K & L & M -- "Collects Response" --> O{Output Handler}
-    O -- "speak()" --> P[backend/TextToSpeech.py: TTS]
     O -- "print()" --> Q[Terminal / Rich UI]
-    P & Q -- "User Experience" --> R[Final Response]
+    Q -- "User Experience" --> R[Final Response]
 ```
 
 Friday's decentralized logic ensures that each module operates independently, while `main.py` maintains the state and security of the entire session.
@@ -47,7 +46,6 @@ Friday's decentralized logic ensures that each module operates independently, wh
 ### 🔐 Security & User Experience
 - **Biometric-Style Auth**: Password-protected startup (`rohit21`) with failed-attempt lockout.
 - **Graceful Interruption**: Integrated `KeyboardInterrupt` (`Ctrl+C`) handling for safe system exits.
-- **Voice Feedback**: Synchronized Text-to-Speech (TTS) for all assistant responses.
 
 ### 📧 Intelligent Communication (AI-Enhanced)
 - **Natural Language Extraction**: Tell Friday "Send an email to X about Y," and it will automatically extract the recipient and subject without further prompts.
@@ -77,7 +75,7 @@ Friday's decentralized logic ensures that each module operates independently, wh
 - **Vector Search**: FAISS (Facebook AI Similarity Search).
 - **Automation**: `pyautogui`, `AppOpener`, `pywhatkit`, `selenium`.
 - **Database**: SQLite (for persistent chat history and context).
-- **UI/UX**: Rich (Terminal Formatting), `pyttsx3` (TTS), `PyQt5`.
+- **UI/UX**: Rich (Terminal Formatting), `PyQt5`.
 - **Networking**: `smtplib` (Email), `requests` (APIs), `Flask` (Web integration).
 
 ---
@@ -112,3 +110,4 @@ Friday's decentralized logic ensures that each module operates independently, wh
 
 ## ⚖️ License
 This project is intended for personal automation and educational exploration of multi-model AI systems.
+l automation and educational exploration of multi-model AI systems.

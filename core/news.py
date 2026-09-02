@@ -12,12 +12,18 @@ class news:
 
     def news(self):
         try:
-            news = requests.get(self.url).json()
-            article = news.get("articles", [])
+            response = requests.get(self.url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            article = data.get("articles", [])
             news_article = []
             for arti in article:
-                news_article.append(arti["title"])
+                if "title" in arti:
+                    news_article.append(arti["title"])
             
+            if not news_article:
+                return "No news articles found at the moment."
+
             report = f"News Report for {datetime.datetime.now().strftime('%d-%m-%Y')}:\n"
             for i in range(min(10, len(news_article))):
                 report += f"{i+1}. {news_article[i]}\n"
