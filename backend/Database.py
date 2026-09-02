@@ -38,9 +38,10 @@ def AddMessage(role, content):
         db.session.add(new_log)
         db.session.commit()
 
-def GetMessages():
+def GetMessages(limit=20):
     with app.app_context():
-        logs = ChatLog.query.order_by(ChatLog.timestamp.asc()).all()
+        logs = ChatLog.query.order_by(ChatLog.timestamp.desc()).limit(limit).all()
+        logs.reverse()
         return [log.to_dict() for log in logs]
 
 def ClearChatLog():

@@ -5,3 +5,4 @@ data/database.db
 data/vault/
 data/VectorDB/
 GEMINI.md
+__pycache__
